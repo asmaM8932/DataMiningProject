@@ -3,26 +3,72 @@ title: "DataMiningFinalProject"
 output: word_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+library(factoextra)
+library(NbClust)
+library(cluster)
+library(stats)
+library(ggplot2)
+library(ggfortify)
+library(dplyr)
 
-## R Markdown
+mydata <- read.csv("C:/Users/Owner/Desktop/data mining project/mydata.csv")
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+# plotting the ggplot
+ggplot(data= mydata, mapping = aes(x= name, y=calories))+geom_point(size= 2)+geom_line(colour="red")
+ggplot(data= mydata, mapping = aes(x= rating, y=calories))+geom_point(size = 2)+geom_line(colour="blue")
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+# Calculating the euclidean distance
+dd <- dist(scale(mydata[70:77, -1]), method = "euclidean")
+dd
+print(dd, digits=1)
+# hierarchical clustering (DENDOGRAM)
+#agglomerative clustering 
+# complete clustering
+set.seed(123)
+dataclust <- hclust(dist(mydata[-1]))
+plot(dataclust)
+plot(dataclust,labels = mydata$name)
+rect.hclust(dataclust,10)
 
-```{r cars}
-summary(cars)
-```
+#wss plot to choose the minimum number of clusters
+wssplot(mydata[-1])
 
-## Including Plots
+#k-mean clustering
 
-You can also embed plots, for example:
+mydata= select(mydata,c(2,3,4,5,6,7,8,9,10))
+km<- kmeans(mydata,4)
+#Evaluating Cluster Analysis
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
+# Cluster Plot 
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+autoplot(km, mydata,frame=TRUE)
+
+#Cluster centers
+
+km$centers
+
+#Principle component Analysis
+
+myPr<- prcomp(mydata)
+myPr <- prcomp(mydata, scale = TRUE)
+
+#plotting of principle component Analysis
+
+plot(mydata$calories, mydata$vitamins)
+plot(scale(mydata$calories), scale(mydata$vitamins))
+plot((mydata$calories - mean(mydata$calories)) / sd(mydata$calories))
+summary(myPr)
+plot(myPr, type = "l")
+biplot(myPr)
+biplot(myPr, scale = 0)
+str(myPr)
+myPr$x
+mydata2 <- cbind(mydata, myPr$x)
+library(ggplot2)
+
+ggplot(mydata2, aes(PC1, PC2, col = mydata$calories, fill = mydata$calories)) +
+  stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
+  geom_point(shape = 21, col = "black")
+
+
+
